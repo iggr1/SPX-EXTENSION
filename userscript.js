@@ -68,7 +68,7 @@ function loadDataFromString(fetchString) {
 
     if (!match) return;
 
-    const [templateId, tableId] = match.slice(1);
+    const [ templateId, tableId ] = match.slice(1);
 
     if (!templateId || !tableId) return;
 
@@ -97,7 +97,7 @@ function loadDataFromString(fetchString) {
 if (fetchString) {
     try {
         loadDataFromString(fetchString);
-    } catch (error) {
+    } catch(error) {
         console.error('Failed to parse fetch string', error);
     }
 }
@@ -105,47 +105,47 @@ if (fetchString) {
 // https://greasyfork.org/en/scripts/433051-trusted-types-helper
 const overwrite_default = false; // If a default policy already exists, it might be best not to overwrite it, but to try and set a custom policy and use it to manually generate trusted types. Try at your own risk
 const prefix = GM_info.script.name;
-var passThroughFunc = function (string, sink) {
-    return string; // Anything passing through this function will be returned without change
+var passThroughFunc = function(string, sink){
+	return string; // Anything passing through this function will be returned without change
 }
 var TTPName = "passthrough";
-var TTP_default, TTP = { createHTML: passThroughFunc, createScript: passThroughFunc, createScriptURL: passThroughFunc }; // We can use TTP.createHTML for all our assignments even if we don't need or even have Trusted Types; this should make fallbacks and polyfills easy
+var TTP_default, TTP = {createHTML: passThroughFunc, createScript: passThroughFunc, createScriptURL: passThroughFunc}; // We can use TTP.createHTML for all our assignments even if we don't need or even have Trusted Types; this should make fallbacks and polyfills easy
 var needsTrustedHTML = false;
-function doit() {
-    try {
-        if (typeof window.isSecureContext !== 'undefined' && window.isSecureContext) {
-            if (window.trustedTypes && window.trustedTypes.createPolicy) {
-                needsTrustedHTML = true;
-                if (trustedTypes.defaultPolicy) {
-                    log("TT Default Policy exists");
-                    if (overwrite_default)
-                        TTP = window.trustedTypes.createPolicy("default", TTP);
-                    else
-                        TTP = window.trustedTypes.createPolicy(TTPName, TTP); // Is the default policy permissive enough? If it already exists, best not to overwrite it
-                    TTP_default = trustedTypes.defaultPolicy;
+function doit(){
+	try{
+		if(typeof window.isSecureContext !== 'undefined' && window.isSecureContext){
+			if (window.trustedTypes && window.trustedTypes.createPolicy){
+				needsTrustedHTML = true;
+				if(trustedTypes.defaultPolicy){
+					log("TT Default Policy exists");
+					if(overwrite_default)
+						TTP = window.trustedTypes.createPolicy("default", TTP);
+					else
+						TTP = window.trustedTypes.createPolicy(TTPName, TTP); // Is the default policy permissive enough? If it already exists, best not to overwrite it
+					TTP_default = trustedTypes.defaultPolicy;
 
-                    log("Created custom passthrough policy, in case the default policy is too restrictive: Use Policy '" + TTPName + "' in var 'TTP':", TTP);
-                }
-                else {
-                    TTP_default = TTP = window.trustedTypes.createPolicy("default", TTP);
-                }
-                log("Trusted-Type Policies: TTP:", TTP, "TTP_default:", TTP_default);
-            }
-        }
-    } catch (e) {
-        log(e);
-    }
+					log("Created custom passthrough policy, in case the default policy is too restrictive: Use Policy '" + TTPName + "' in var 'TTP':", TTP);
+				}
+				else{
+					TTP_default = TTP = window.trustedTypes.createPolicy("default", TTP);
+				}
+				log("Trusted-Type Policies: TTP:", TTP, "TTP_default:", TTP_default);
+			}
+		}
+	}catch(e){
+		log(e);
+	}
 }
 
 const logsEnabled = false;
 
-function log(...args) {
-    if (!logsEnabled) return;
-    if ("undefined" != typeof (prefix) && !!prefix)
-        args = [prefix + ":", ...args];
-    if ("undefined" != typeof (debugging) && !!debugging)
-        args = [...args, new Error().stack.replace(/^\s*(Error|Stack trace):?\n/gi, "").replace(/^([^\n]*\n)/, "\n")];
-    console.log(...args);
+function log(...args){
+    if(!logsEnabled) return;
+	if("undefined" != typeof(prefix) && !!prefix)
+		args = [prefix + ":", ...args];
+	if("undefined" != typeof(debugging) && !!debugging)
+		args = [...args, new Error().stack.replace(/^\s*(Error|Stack trace):?\n/gi, "").replace(/^([^\n]*\n)/, "\n")];
+	console.log(...args);
 }
 
 doit();
@@ -481,7 +481,7 @@ function showAlert({ type = '', title = '', message = '', buttons = [], duration
     document.body.appendChild(alertElement);
 
     if (hasButtons) {
-        const buttonElements = [...alertElement.querySelectorAll('button')];
+        const buttonElements = [ ...alertElement.querySelectorAll('button') ];
 
         for (let i = 0; i < buttonElements.length; i++) {
             const buttonElement = buttonElements[i];
@@ -618,17 +618,17 @@ function createSwitchButton() {
 }
 
 function removeSwitchButton() {
-    switchButtonElement.remove();
+	switchButtonElement.remove();
 }
-function check() {
-    const matches = location.href.includes('generalReceiveTaskOps/singleReceiveNew')
-    console.log({ matches })
-    if (matches) {
-        createSwitchButton();
-    } else {
-        removeSwitchButton();
+    function check() {
+	    const matches = location.href.includes('generalReceiveTaskOps/singleReceiveNew')
+	    console.log({matches})
+        if (matches) {
+            createSwitchButton();
+        } else {
+            removeSwitchButton();
+        }
     }
-}
 
 // Chame esta função após o DOM ser carregado
 document.addEventListener('DOMContentLoaded', () => {
@@ -654,11 +654,11 @@ document.addEventListener('DOMContentLoaded', () => {
     check();
 });
 
-window.addEventListener('popstate', () => {
-    window.dispatchEvent(new Event('urlChange'));
-});
+    window.addEventListener('popstate', () => {
+        window.dispatchEvent(new Event('urlChange'));
+    });
 
-window.addEventListener('urlChange', () => check());
+    window.addEventListener('urlChange', () => check());
 // Use este valor no envio de códigos para verificar o estado
 function isAppSheetEnabled() {
     return localStorage.getItem('appsheetEnabled') === 'true';
@@ -754,10 +754,10 @@ function setInputElement(element) {
     addInputListener();
 
     // showAlert({
-    //  type: 'success',
-    // title: 'Campo encontrado',
-    // message: 'Para trocar o campo de texto; recarregue a página\nou precione **CTRL + SHIFT + 1**'
-    //});
+           //  type: 'success',
+            // title: 'Campo encontrado',
+            // message: 'Para trocar o campo de texto; recarregue a página\nou precione **CTRL + SHIFT + 1**'
+        //});
 }
 
 function findInputElement({ useActiveElement = true } = {}) {
@@ -818,7 +818,7 @@ function removeCookie() {
 
     cookie = null;
 
-    removeInputElement({ findAnother: false });
+    removeInputElement({ findAnother: false});
 
     showAlert({
         type: 'warning',
