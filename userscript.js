@@ -153,8 +153,7 @@ doit();
 const getMatchUrl = (index) => GM_info.script.matches[index].replace(/\/?\*$/, '');
 
 const SPX_SITE_URL = getMatchUrl(0);
-const SERVER_URL = getMatchUrl(1);
-const APPSHEET_URL = getMatchUrl(2);
+const APPSHEET_URL = getMatchUrl(1);
 
 function randomNumericId(length) {
     return Math.floor(Math.random() * 10 ** length).toString().padStart(length, '0');
