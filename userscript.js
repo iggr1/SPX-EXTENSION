@@ -572,7 +572,7 @@ async function inputListenerCallback(event) {
     await saveBrCode(brCode);
 }
 
-let switchButtonElement
+let switchButtonElement;
 
 function createSwitchButton() {
     const switchContainer = document.createElement('div');
@@ -620,16 +620,18 @@ function createSwitchButton() {
 function removeSwitchButton() {
 	switchButtonElement.remove();
 }
+    function check() {
+	    const matches = location.href.includes('generalReceiveTaskOps/singleReceiveNew')
+	    console.log({matches})
+        if (matches) {
+            createSwitchButton();
+        } else {
+            removeSwitchButton();
+        }
+    }
 
 // Chame esta função após o DOM ser carregado
 document.addEventListener('DOMContentLoaded', () => {
-    function check() {
-        if (location.href.includes('generalReceiveTaskOps/singleReceiveNew')) {
-            createSwitchButton();
-        } else {
-            if (typeof removeSwitchButton !== 'undefined') removeSwitchButton();
-        }
-    }
 
     (function (history) {
         const pushState = history.pushState;
@@ -648,15 +650,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     })(window.history);
 
+
+    check();
+});
+
     window.addEventListener('popstate', () => {
         window.dispatchEvent(new Event('urlChange'));
     });
 
     window.addEventListener('urlChange', () => check());
-
-    check();
-});
-
 // Use este valor no envio de códigos para verificar o estado
 function isAppSheetEnabled() {
     return localStorage.getItem('appsheetEnabled') === 'true';
