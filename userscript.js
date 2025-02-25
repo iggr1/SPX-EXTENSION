@@ -1,3 +1,4 @@
+
 /*
 ______________________________________________________________________________
 
@@ -31,15 +32,6 @@ Caso o script não encontre o campo, ele irá pedir para o usuário clicar em um
     - abrir este userscript e colar o resultado dentro da string "fetchString" abaixo \/ dentro das áspas.
 */
 
-let fetchConfig = {};
-let cookie;
-let inputElement = null;
-let lastAlertElement = null;
-let lastBlinkTimeout;
-let switchButtonElement;
-
-const codes = new Set();
-const outlineColor = colors.blue;
 const fetchString = `
 fetch("https://www.appsheet.com/api/template/319d5010-684a-4c17-a8e7-04ef3a91d6e3/table/BASE%20DE%20DADOS%20CHAPECO./row?tzOffset=180&settings=%7B%22_RowNumber%22%3A%220%22%2C%22_EMAIL%22%3A%22%22%2C%22_NAME%22%3A%22%22%2C%22_LOCATION%22%3A%22%22%2C%22Options%20Heading%22%3A%22%22%2C%22Option%201%22%3A%22%22%2C%22Option%202%22%3A%22%22%2C%22Country%20Option%22%3A%22%22%2C%22Language%20Option%22%3A%22%22%2C%22Option%205%22%3A%22%22%2C%22Option%206%22%3A%22%22%2C%22Option%207%22%3A%22%22%2C%22Option%208%22%3A%22%22%2C%22Option%209%22%3A%22%22%2C%22_THISUSER%22%3A%22onlyvalue%22%7D&apiLevel=2&isPreview=false&checkCache=true&locale=pt-BR&location=null%2C%20null&appTemplateVersion=1.000003&localVersion=1.000003&timestamp=2024-11-18T05%3A13%3A57.728Z&requestStartTime=2024-11-18T05%3A13%3A57.785Z&lastSyncTime=2024-11-18T05%3A10%3A59.8457703Z&appStartTime=2024-11-18T05%3A11%3A01.550Z&dataStamp=2024-11-18T05%3A13%3A57.729Z&clientId=5962a91d-ebaf-4a5a-a27b-afb2fdec75fb&build=aaaaaaaaaaaaaaaaaaaa-1731565100066-5dc7204854b&requestId=46987875&syncToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjMxOWQ1MDEwLTY4NGEtNGMxNy1hOGU3LTA0ZWYzYTkxZDZlMyIsImFwcFZlcnNpb24iOiIxLjAwMDAwMyIsInVzZXJJZCI6IjkwMjg1NDc5MSIsImlhdCI6MTczMTkwNjY1MSwiZXhwIjoxNzM5NjgyNjUxLCJpc3MiOiJodHRwczovL3d3dy5hcHBzaGVldC5jb20iLCJhdWQiOiJodHRwczovL3d3dy5hcHBzaGVldC5jb20ifQ.P83hTQfNNRT1Zzj7P3VsHup68-pBvTAguNHLL6TuIOI", {
   "headers": {
@@ -63,6 +55,45 @@ fetch("https://www.appsheet.com/api/template/319d5010-684a-4c17-a8e7-04ef3a91d6e
 });
 `;
 
+let fetchConfig = {};
+
+function loadDataFromString(fetchString) {
+    let url = fetchString.match(/fetch\("(.+)", \{/)?.[1];
+
+    if (!url) return;
+
+    url = new URL(url);
+
+    let match = url.pathname.match(/\/template\/(.+?)\/table\/(.+?)\//);
+
+    if (!match) return;
+
+    const [templateId, tableId] = match.slice(1);
+
+    if (!templateId || !tableId) return;
+
+    fetchConfig.templateId = templateId;
+    fetchConfig.tableId = tableId;
+
+    const params = new URLSearchParams(url.search.replace(/^\?/, ''));
+    const paramsObject = Object.fromEntries(params.entries());
+
+    fetchConfig.clientId = paramsObject.clientId;
+    fetchConfig.buildId = paramsObject.build;
+    fetchConfig.params = { ...paramsObject, ...fetchConfig.params };
+
+    if (!GM_getValue('AppSheetCookie')) {
+        const cookieString = fetchString.match(/"cookie": "(.+?)",/)?.[1];
+
+        if (cookieString) {
+            console.log('Cookie inicial definido pela string do fetch.');
+            GM_setValue('AppSheetCookie', cookieString);
+        }
+    }
+
+    console.log('Dados encontrados na string do fetch:', fetchConfig);
+}
+
 if (fetchString) {
     try {
         loadDataFromString(fetchString);
@@ -71,6 +102,7 @@ if (fetchString) {
     }
 }
 
+// https://greasyfork.org/en/scripts/433051-trusted-types-helper
 const overwrite_default = false; // If a default policy already exists, it might be best not to overwrite it, but to try and set a custom policy and use it to manually generate trusted types. Try at your own risk
 const prefix = GM_info.script.name;
 var passThroughFunc = function (string, sink) {
@@ -135,6 +167,8 @@ function currentDateString() {
     const year = date.getFullYear();
     return month + '/' + day + '/' + year;
 }
+
+let cookie;
 
 async function createRow(codeString, dateString = currentDateString(), lineNumber = '0') {
     const { templateId, tableId, clientId, buildId } = fetchConfig;
@@ -394,6 +428,8 @@ function sanitize(string) {
     return element.innerHTML;
 }
 
+let lastAlertElement = null;
+
 function closeAlert(alertElement) {
     alertElement.classList.add('spx-userscript-hidden');
 
@@ -468,6 +504,8 @@ function showAlert({ type = '', title = '', message = '', buttons = [], duration
 
 unsafeWindow.showAlert = showAlert;
 
+const outlineColor = colors.blue;
+
 function addInputHighlight(color = outlineColor) {
     inputElement.style.outline = '2px solid ' + color;
     inputElement.style.outlineOffset = '-2px';
@@ -476,6 +514,8 @@ function addInputHighlight(color = outlineColor) {
 function removeInputHighlight() {
     inputElement.removeAttribute('style');
 }
+
+let lastBlinkTimeout;
 
 function blinkInputHighlight(blinkColor = colors.green, durationMs = 200) {
     addInputHighlight(blinkColor);
@@ -517,6 +557,8 @@ async function saveIntoAppSheet(brCode) {
     }
 }
 
+const codes = new Set();
+
 async function inputListenerCallback(event) {
     const brCode = event.target.value.trim().toUpperCase();
     const isValid = brCode.startsWith('BR') && brCode.length === 15;
@@ -529,6 +571,8 @@ async function inputListenerCallback(event) {
 
     await saveBrCode(brCode);
 }
+
+let switchButtonElement;
 
 function createSwitchButton() {
     const switchContainer = document.createElement('div');
@@ -576,44 +620,6 @@ function createSwitchButton() {
 function removeSwitchButton() {
     switchButtonElement.remove();
 }
-
-function loadDataFromString(fetchString) {
-    let url = fetchString.match(/fetch\("(.+)", \{/)?.[1];
-
-    if (!url) return;
-
-    url = new URL(url);
-
-    let match = url.pathname.match(/\/template\/(.+?)\/table\/(.+?)\//);
-
-    if (!match) return;
-
-    const [templateId, tableId] = match.slice(1);
-
-    if (!templateId || !tableId) return;
-
-    fetchConfig.templateId = templateId;
-    fetchConfig.tableId = tableId;
-
-    const params = new URLSearchParams(url.search.replace(/^\?/, ''));
-    const paramsObject = Object.fromEntries(params.entries());
-
-    fetchConfig.clientId = paramsObject.clientId;
-    fetchConfig.buildId = paramsObject.build;
-    fetchConfig.params = { ...paramsObject, ...fetchConfig.params };
-
-    if (!GM_getValue('AppSheetCookie')) {
-        const cookieString = fetchString.match(/"cookie": "(.+?)",/)?.[1];
-
-        if (cookieString) {
-            console.log('Cookie inicial definido pela string do fetch.');
-            GM_setValue('AppSheetCookie', cookieString);
-        }
-    }
-
-    console.log('Dados encontrados na string do fetch:', fetchConfig);
-}
-
 function check() {
     const matches = location.href.includes('generalReceiveTaskOps/singleReceiveNew')
     console.log({ matches })
@@ -624,6 +630,36 @@ function check() {
     }
 }
 
+// Chame esta função após o DOM ser carregado
+document.addEventListener('DOMContentLoaded', () => {
+
+    (function (history) {
+        const pushState = history.pushState;
+        const replaceState = history.replaceState;
+
+        history.pushState = function (...args) {
+            const result = pushState.apply(history, args);
+            window.dispatchEvent(new Event('urlChange'));
+            return result;
+        };
+
+        history.replaceState = function (...args) {
+            const result = replaceState.apply(history, args);
+            window.dispatchEvent(new Event('urlChange'));
+            return result;
+        };
+    })(window.history);
+
+
+    check();
+});
+
+window.addEventListener('popstate', () => {
+    window.dispatchEvent(new Event('urlChange'));
+});
+
+window.addEventListener('urlChange', () => check());
+// Use este valor no envio de códigos para verificar o estado
 function isAppSheetEnabled() {
     return localStorage.getItem('appsheetEnabled') === 'true';
 }
@@ -691,6 +727,10 @@ async function saveBrCode(brCode) {
     }
 }
 
+
+
+let inputElement = null;
+
 function addInputListener() {
     inputElement.addEventListener('keydown', inputListenerCallback, true);
     inputElement.addEventListener('keyup', inputListenerCallback, true);
@@ -712,6 +752,12 @@ function setInputElement(element) {
 
     addInputHighlight();
     addInputListener();
+
+    // showAlert({
+    //  type: 'success',
+    // title: 'Campo encontrado',
+    // message: 'Para trocar o campo de texto; recarregue a página\nou precione **CTRL + SHIFT + 1**'
+    //});
 }
 
 function findInputElement({ useActiveElement = true } = {}) {
@@ -785,6 +831,35 @@ function removeCookie() {
     addSpxFocusListeners();
 }
 
+const actionsArray = [{
+    keys: ['Control', 'Shift', 'Digit1'],
+    callback: () => removeInputElement()
+}, {
+    keys: ['Control', 'Shift', 'Digit2'],
+    callback: () => removeCookie()
+}];
+
+function setupKeyboardActions() {
+    const hasAll = (array, items) => items.every(item => array.includes(item));
+
+    document.addEventListener('keydown', (event) => {
+        let pressedKeys = new Set();
+
+        if (event.ctrlKey) pressedKeys.add('Control');
+        if (event.shiftKey) pressedKeys.add('Shift');
+        if (event.altKey) pressedKeys.add('Alt');
+        if (event.metaKey) pressedKeys.add('Meta');
+
+        pressedKeys.add(event.key);
+        pressedKeys.add(event.code);
+        pressedKeys = Array.from(pressedKeys);
+
+        const actions = actionsArray.filter(({ keys }) => hasAll(pressedKeys, keys));
+
+        for (const { callback } of actions) callback();
+    }, true);
+}
+
 function isFocused(event) {
     return event.type === 'focus' || document.visibilityState === 'visible';
 }
@@ -804,6 +879,8 @@ function spxGainedFocus(event) {
             message: 'O cookie foi recebido com sucesso.',
             durationMs: successDurationMs
         });
+
+        //setTimeout(() => findInputElement(), successDurationMs);
 
         removeSpxFocusListeners();
     }
@@ -868,16 +945,9 @@ function checkCookie() {
     }
 }
 
-function trackActiveInput() {
-    document.addEventListener('focusin', (event) => {
-        const target = event.target;
-        if (isTextInput(target)) {
-            setInputElement(target);
-        }
-    });
-}
-
 function main() {
+    setupKeyboardActions();
+
     const SPX_HOST = "spx.shopee.com.br"; // Domínio do primeiro @match
     const currentHost = location.host;
 
@@ -893,30 +963,13 @@ function main() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    (function (history) {
-        const pushState = history.pushState;
-        const replaceState = history.replaceState;
+function trackActiveInput() {
+    document.addEventListener('focusin', (event) => {
+        const target = event.target;
+        if (isTextInput(target)) {
+            setInputElement(target);
+        }
+    });
+}
 
-        history.pushState = function (...args) {
-            const result = pushState.apply(history, args);
-            window.dispatchEvent(new Event('urlChange'));
-            return result;
-        };
-
-        history.replaceState = function (...args) {
-            const result = replaceState.apply(history, args);
-            window.dispatchEvent(new Event('urlChange'));
-            return result;
-        };
-    })(window.history);
-
-    main();
-    check();
-});
-
-window.addEventListener('popstate', () => {
-    window.dispatchEvent(new Event('urlChange'));
-});
-
-window.addEventListener('urlChange', () => check());
+document.addEventListener('DOMContentLoaded', () => main());
