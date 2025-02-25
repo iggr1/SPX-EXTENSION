@@ -616,48 +616,38 @@ function createSwitchButton() {
 
 // Chame esta função após o DOM ser carregado
 document.addEventListener('DOMContentLoaded', () => {
-// Função "check" que será chamada em cada evento.
-// Atualmente, ela não faz nada (aguarde novas instruções).
-function check() {
-  // Ainda não faz nada
-  if (location.href.includes('generalReceiveTaskOps/singleReceiveNew')) createSwitchButton();
-}
+    function check() {
+        if (location.href.includes('generalReceiveTaskOps/singleReceiveNew')) {
+            createSwitchButton();
+        } else {
+            if (typeof removeSwitchButton !== 'undefined') removeSwitchButton();
+        }
+    }
 
-// Detecta mudanças na URL sem recarregar a página
-(function(history) {
-  // Guarda os métodos originais
-  const pushState = history.pushState;
-  const replaceState = history.replaceState;
+    (function (history) {
+        const pushState = history.pushState;
+        const replaceState = history.replaceState;
 
-  // Sobrescreve o pushState para disparar um evento customizado
-  history.pushState = function(...args) {
-    const result = pushState.apply(history, args);
-    window.dispatchEvent(new Event('urlChange'));
-    return result;
-  };
+        history.pushState = function (...args) {
+            const result = pushState.apply(history, args);
+            window.dispatchEvent(new Event('urlChange'));
+            return result;
+        };
 
-  // Sobrescreve o replaceState para disparar um evento customizado
-  history.replaceState = function(...args) {
-    const result = replaceState.apply(history, args);
-    window.dispatchEvent(new Event('urlChange'));
-    return result;
-  };
-})(window.history);
+        history.replaceState = function (...args) {
+            const result = replaceState.apply(history, args);
+            window.dispatchEvent(new Event('urlChange'));
+            return result;
+        };
+    })(window.history);
 
-// Ouve o evento popstate para capturar navegações do navegador (voltar/avançar)
-window.addEventListener('popstate', () => {
-  window.dispatchEvent(new Event('urlChange'));
-});
+    window.addEventListener('popstate', () => {
+        window.dispatchEvent(new Event('urlChange'));
+    });
 
-// Ao ocorrer a mudança de URL, chama a função "check"
-window.addEventListener('urlChange', () => {
-  check();
-});
+    window.addEventListener('urlChange', () => check());
 
-// Chama a função "check" quando o script carrega (após o DOM estar pronto)
-document.addEventListener('DOMContentLoaded', () => {
-  check();
-});
+    check();
 });
 
 // Use este valor no envio de códigos para verificar o estado
