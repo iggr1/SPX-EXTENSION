@@ -572,6 +572,8 @@ async function inputListenerCallback(event) {
     await saveBrCode(brCode);
 }
 
+let switchButtonElement
+
 function createSwitchButton() {
     const switchContainer = document.createElement('div');
     switchContainer.style.position = 'fixed';
@@ -611,6 +613,12 @@ function createSwitchButton() {
     switchContainer.appendChild(label);
     switchContainer.appendChild(switchInput);
     document.body.appendChild(switchContainer);
+
+    switchButtonElement = switchContainer;
+}
+
+function removeSwitchButton() {
+	switchButtonElement.remove();
 }
 
 // Chame esta função após o DOM ser carregado
